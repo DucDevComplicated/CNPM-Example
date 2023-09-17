@@ -23,7 +23,7 @@ $ pnpm run dev
 
 ## API Requests and Responses
 
-```bash
+``` bash
 # Signup
 $ POST /signup
 # Request
@@ -46,11 +46,21 @@ $ POST /login
 }
 # Response
 {
-    "message": "Signup successfully"
+    "message": "Signup successfully",
+    "user": {
+        "username": "username",
+        "password": "password",
+        "isAdmin": true
+    },
+    "token": "token"
 }
 
 # Get all users
 $ GET /users
+# Request
+{
+    "token": "token"
+}
 # Response
 [
     {
@@ -67,6 +77,10 @@ $ GET /users
 
 # Get user by id
 $ GET /users/:id
+# Request 
+{
+    "token": "token"
+}
 # Response
 {
     "username": "username",
@@ -75,4 +89,6 @@ $ GET /users/:id
 }
 ```
 
-## Stay in touch
+## Author
+
+Hoàng Mạnh Đức - DucDevComplicated
