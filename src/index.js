@@ -14,7 +14,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-const verifyToken = async (req, res, next) => {
+const verifyToken = (req, res, next) => {
+    // const token = req.cookies.token;
     const token = req.body.token;
     if (!token) {
         return res.status(403).json({ message: "Missing token" });
@@ -28,22 +29,42 @@ const verifyToken = async (req, res, next) => {
     });
 };
 
-// Routes
-app.get("/users", verifyToken, (req, res) => {
-    if (!req.user.isAdmin) {
-        return res.status(403).json({ message: "Unauthorized" });
+const isAdmin = (req, res, next) => {
+    const user = users.find((user) => user.username === req.user.username);
+    if (!user || !user.isAdmin) {
+        return res.status(403).json({ message: "Access denied" });
     }
-    res.status(200).json({
+    return next();
+};
+
+const isAuth = (req, res, next) => {
+    const user = users.find((user) => user.username === req.user.username);
+    if (!user) {
+        return res.status(403).json({ message: "Access denied" });
+    }
+    return next();
+};
+
+app.get("/users", [verifyToken, isAuth, isAdmin], (req, res) => {
+    return res.status(200).json({
         message: "Get all users successfully",
         users,
     });
 });
 
+app.get("/users/:username", [verifyToken, isAuth || isAdmin], (req, res) => {
+    const user = users.find((user) => user.username === +req.params.username);
+    return res.status(200).json({
+        message: "Get user successfully",
+        user,
+    });
+});
+
 app.post("/signup", (req, res) => {
-    if (!req.body.id || !req.body.name || !req.body.age) {
+    if (!req.body.username || !req.body.password || !req.body.isAdmin) {
         return res.status(400).json({ message: "Missing required fields" });
     }
-    const user = users.find((user) => user.id === req.body.id);
+    const user = users.find((user) => user.username === req.body.username);
     if (user) {
         return res.status(400).json({ message: "Username already exists" });
     }
@@ -64,14 +85,15 @@ app.post("/login", (req, res) => {
     }
 
     const token = jwt.sign({ username: user.username }, "secret", {
-        expiresIn: "30s",
+        expiresIn: "1m",
     });
 
-    res.cookie("token", token, { maxAge: 30 * 1000 });
+    // res.cookie("token", token, { maxAge: 30 * 1000 });
     res.status(200).json({ message: "Login successfully", user, token });
 });
 
 app.post("/logout", (req, res) => {
+    // res.clearCookie("token");
     res.status(200).json({ message: "Logout successfully" });
 });
 

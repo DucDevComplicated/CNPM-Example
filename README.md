@@ -20,3 +20,59 @@ $ pnpm run start
 # development mode
 $ pnpm run dev
 ```
+
+## API Requests and Responses
+
+```bash
+# Signup
+$ POST /signup
+# Request
+{
+    "username": "username",
+    "password": "password",
+    "isAdmin": true
+}
+# Response
+{
+    "message": "Signup successfully"
+}
+
+# Login
+$ POST /login
+# Request
+{
+    "username": "username",
+    "password": "password"
+}
+# Response
+{
+    "message": "Signup successfully"
+}
+
+# Get all users
+$ GET /users
+# Response
+[
+    {
+        "username": "username",
+        "password": "password",
+        "isAdmin": true
+    },
+    {
+        "username": "username",
+        "password": "password",
+        "isAdmin": false
+    }
+]
+
+# Get user by id
+$ GET /users/:id
+# Response
+{
+    "username": "username",
+    "password": "password",
+    "isAdmin": true
+}
+```
+
+## Stay in touch
