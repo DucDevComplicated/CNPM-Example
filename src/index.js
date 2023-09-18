@@ -45,15 +45,29 @@ const isAuth = (req, res, next) => {
     return next();
 };
 
-app.get("/users", [verifyToken, isAuth, isAdmin], (req, res) => {
+const isAdminOrAuth = (req, res, next) => {
+    const user = users.find((user) => user.username === req.user.username);
+    if (!user) {
+        return res.status(403).json({ message: "Access denied" });
+    }
+    if (user.isAdmin || user.username === req.params.username) {
+        return next();
+    }
+    return res.status(403).json({ message: "Access denied" });
+};
+
+app.get("/users", [verifyToken, isAdmin], (req, res) => {
     return res.status(200).json({
         message: "Get all users successfully",
         users,
     });
 });
 
-app.get("/users/:username", [verifyToken, isAuth || isAdmin], (req, res) => {
-    const user = users.find((user) => user.username === +req.params.username);
+app.get("/users/:username", [verifyToken, isAdminOrAuth], (req, res) => {
+    const user = users.find((user) => user.username === req.params.username);
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
     return res.status(200).json({
         message: "Get user successfully",
         user,
@@ -61,7 +75,7 @@ app.get("/users/:username", [verifyToken, isAuth || isAdmin], (req, res) => {
 });
 
 app.post("/signup", (req, res) => {
-    if (!req.body.username || !req.body.password || !req.body.isAdmin) {
+    if (!req.body.username || !req.body.password || req.body.isAdmin == null) {
         return res.status(400).json({ message: "Missing required fields" });
     }
     const user = users.find((user) => user.username === req.body.username);
@@ -85,14 +99,14 @@ app.post("/login", (req, res) => {
     }
 
     const token = jwt.sign({ username: user.username }, "secret", {
-        expiresIn: "1m",
+        expiresIn: "1h",
     });
 
     // res.cookie("token", token, { maxAge: 30 * 1000 });
     res.status(200).json({ message: "Login successfully", user, token });
 });
 
-app.post("/logout", (req, res) => {
+app.post("/logout", isAuth, (req, res) => {
     // res.clearCookie("token");
     res.status(200).json({ message: "Logout successfully" });
 });
